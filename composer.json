@@ -1,12 +1,43 @@
 {
     "name": "kaninphp/kaninphp",
-    "description": "The Kanin.PHP Framework",
+    "description": "KaninPHP: a lightweight, API-first PHP framework for beginners.",
+    "type": "project",
     "keywords": [
         "framework",
-        "kaninphp"
+        "kaninphp",
+        "api",
+        "rest"
     ],
     "license": "MIT",
     "require": {
-        "php": "^7.2"
-    }
+        "php": "^8.5",
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "ext-pdo": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Kanin\\": "system/",
+            "App\\": "app/"
+        },
+        "files": [
+            "system/Support/helpers.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
 }

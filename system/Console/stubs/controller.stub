@@ -1,0 +1,24 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controllers;
+
+use Kanin\Http\Request;
+
+/**
+ * {{ class }}.
+ *
+ * Point a route at it in routes/api.php, for example:
+ *     $router->get('/hello', [{{ class }}::class, 'index']);
+ */
+class {{ class }}
+{
+    /**
+     * Handle the request. Returning an array sends it as JSON.
+     */
+    public function index(Request $request): array
+    {
+        return ['message' => '{{ class }} works!'];
+    }
+}

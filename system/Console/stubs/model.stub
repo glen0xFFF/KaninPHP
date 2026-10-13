@@ -1,0 +1,26 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use Kanin\Database\Model;
+
+/**
+ * {{ class }} model.
+ *
+ * The table name is guessed from the class name (BlogPost -> blog_posts).
+ * Set protected string $table = '...'; to use a different table.
+ */
+class {{ class }} extends Model
+{
+    /**
+     * Columns that create() and fill() are allowed to set.
+     */
+    protected array $fillable = [];
+
+    /**
+     * Columns that are never included in JSON output (e.g. password hashes).
+     */
+    protected array $hidden = [];
+}

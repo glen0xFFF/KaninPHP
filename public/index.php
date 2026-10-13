@@ -1,28 +1,37 @@
 <?php
-/**
- * PHP versions 7.0+
+
+declare(strict_types=1);
+
+/*
+ * KaninPHP front controller: every HTTP request enters the app here.
  *
- * Kanin.PHP(tm) : Application Framework
- * Copyright 2020, Indevfinite Software Foundation, Inc. (https:/indevfinite.com)
- *
- * Licensed under The MIT License
- * Redistributions of files must retain the above copyright notice.
- *
- * @copyright     Copyright 2020, Indevfinite Software Foundation, Inc. (https:/indevfinite.com)
- * @link          Kanin.PHP Project
- * @package       Kanin
- * @subpackage    Kanin Appplication framework
- * @since         Kanin.PHP v0.0.1
- * @license       MIT License (http://www.opensource.org/licenses/mit-license.php)
+ * With Apache, public/.htaccess sends every non-file request to this file.
+ * With `php kanin serve` (PHP's built-in server) this file is the router
+ * script, so it must hand real files (images, robots.txt...) back to the
+ * server: returning false tells the built-in server "serve it yourself".
  */
 
-define('KANIN_COOK', time());
+use Kanin\Application;
 
-// Access
-define('access', 'index');
+if (PHP_SAPI === 'cli-server') {
+    $publicDir = (string) realpath(__DIR__);
+    $decoded = rawurldecode((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH));
+    // realpath() throws on NUL bytes: such a path is never a file, so let the app answer 404.
+    $requested = str_contains($decoded, "\0") ? false : realpath($publicDir . $decoded);
 
-require __DIR__.'/../system/core.php';
+    // Only plain files that really live inside public/: never "../" escapes,
+    // never hidden dotfiles such as .htaccess, never this script itself.
+    if (
+        $requested !== false
+        && is_file($requested)
+        && ! str_starts_with(basename($requested), '.')
+        && str_starts_with($requested, $publicDir . DIRECTORY_SEPARATOR)
+        && $requested !== realpath(__FILE__)
+    ) {
+        return false;
+    }
+}
 
+require dirname(__DIR__) . '/vendor/autoload.php';
 
-$app = require_once __DIR__.'/../system/app.php';
-
+(new Application(dirname(__DIR__)))->run();

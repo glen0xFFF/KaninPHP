@@ -1,0 +1,15 @@
+# Composer dependencies
+/vendor/
+
+# Local environment settings (copy .env.example to .env)
+.env
+
+# SQLite databases created by `php kanin db:seed`
+/database/*.sqlite
+
+# Logs (keep the folder itself)
+/storage/logs/*
+!/storage/logs/.gitkeep
+
+# PHPUnit cache
+/.phpunit.cache/

@@ -1,0 +1,17 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ * The KaninPHP command line tool. Run "php kanin help" to see every command.
+ */
+
+use Kanin\Application;
+use Kanin\Console\Kanin;
+
+require __DIR__ . '/vendor/autoload.php';
+
+$app = new Application(__DIR__);
+$app->boot();
+
+exit((new Kanin($app))->run($argv));
