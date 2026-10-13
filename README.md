@@ -41,7 +41,8 @@ composer install
 cp .env.example .env
 ```
 
-Open `.env` and replace `API_TOKENS=change-me` with a strong secret. You can generate one with:
+`API_TOKENS` starts empty, so creating, updating and deleting users is refused (`401`)
+until you set a token. Generate a strong one and put it in `.env` as `API_TOKENS=<your-token>`:
 
 ```bash
 php -r "echo bin2hex(random_bytes(32));"
@@ -84,7 +85,7 @@ Creating, updating and deleting users needs a bearer token from `API_TOKENS`:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/users \
-  -H "Authorization: Bearer change-me" \
+  -H "Authorization: Bearer <your-token>" \
   -H "Content-Type: application/json" \
   -d '{"name":"Linus Torvalds","email":"linus@example.com"}'
 ```
@@ -578,7 +579,7 @@ Use several tokens to rotate them without downtime: add the new one, update your
 clients, then remove the old one.
 
 ```dotenv
-API_TOKENS=7f3c0d6e8a0b4c1d9e2f5a6b7c8d9e0f,1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d
+API_TOKENS=<token-for-app-one>,<token-for-app-two>
 ```
 
 ### Writing your own middleware
