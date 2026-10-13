@@ -76,7 +76,14 @@ final class JsonResponseTest extends TestCase
     {
         $this->expectException(\JsonException::class);
 
-        new JsonResponse(['bad' => "\xB1\x31"]);
+        new JsonResponse(['bad' => NAN]);
+    }
+
+    public function test_json_response_replaces_invalid_utf8_instead_of_failing(): void
+    {
+        $response = new JsonResponse(['name' => "Bad\xFF"]);
+
+        $this->assertSame(['name' => "Bad\u{FFFD}"], $response->getData());
     }
 
     public function test_get_data_throws_when_content_is_not_json(): void

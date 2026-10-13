@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use Kanin\Http\Request;
 use Tests\TestCase;
 
 final class UserApiTest extends TestCase
@@ -219,5 +220,24 @@ final class UserApiTest extends TestCase
         $response = $this->withToken()->deleteJson('/api/users/999');
 
         $this->assertSame(404, $response->getStatusCode());
+    }
+
+    public function test_invalid_utf8_name_is_a_422_and_the_list_still_works(): void
+    {
+        $request = Request::create('/api/users', 'POST', ['name' => "Badÿ", 'email' => 'bad@example.com'], [
+            'Authorization' => 'Bearer test-token',
+            'Content-Type' => 'application/x-www-form-urlencoded',
+        ]);
+
+        $response = $this->app->handle($request);
+
+        $this->assertSame(422, $response->getStatusCode());
+        $this->assertSame(200, $this->getJson('/api/users')->getStatusCode());
+        $this->assertSame(3, $this->decode($this->getJson('/api/users'))['meta']['total']);
+    }
+
+    public function test_overflowing_id_is_a_404_not_a_500(): void
+    {
+        $this->assertSame(404, $this->getJson('/api/users/99999999999999999999')->getStatusCode());
     }
 }

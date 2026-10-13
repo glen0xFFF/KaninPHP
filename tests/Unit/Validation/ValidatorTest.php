@@ -108,6 +108,8 @@ final class ValidatorTest extends TestCase
             'url' => ['not a url', 'url', 'The field must be a valid URL.'],
             'url javascript scheme' => ['javascript://alert(1)', 'url', 'The field must be a valid URL.'],
             'url ftp scheme' => ['ftp://example.com', 'url', 'The field must be a valid URL.'],
+            'string invalid utf-8' => ["Badÿ", 'string', 'The field must be a string.'],
+            'in invalid utf-8' => ["adÿmin", 'in:admin', 'The selected field is invalid.'],
         ];
     }
 

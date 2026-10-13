@@ -11,8 +11,9 @@ namespace Kanin\Http;
  */
 class JsonResponse extends Response
 {
-    /** Flags used for every encode: throw on failure, keep "/" and unicode readable. */
-    public const ENCODING_FLAGS = JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
+    /** Flags used for every encode: throw on failure, keep "/" and unicode readable,
+     *  replace broken UTF-8 with U+FFFD. */
+    public const ENCODING_FLAGS = JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE;
 
     /**
      * @param mixed                 $data    Anything json_encode() accepts (arrays, models, ...).
@@ -20,7 +21,7 @@ class JsonResponse extends Response
      * @param array<string, string> $headers Extra headers as name => value. A Content-Type
      *                                       given here replaces the default application/json.
      *
-     * @throws \JsonException When $data cannot be encoded (e.g. invalid UTF-8 or INF).
+     * @throws \JsonException When $data cannot be encoded (e.g. INF or NAN).
      */
     public function __construct(mixed $data = null, int $status = 200, array $headers = [])
     {

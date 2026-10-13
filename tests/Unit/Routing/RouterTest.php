@@ -68,6 +68,40 @@ class RouterTest extends TestCase
         $this->assertSame(['id' => 5, 'type' => 'int'], $this->send('GET', '/users/5')->getData());
     }
 
+    public function test_non_numeric_value_for_an_int_parameter_is_a_404(): void
+    {
+        $this->router->get('/users/{id}', fn (int $id) => ['id' => $id]);
+
+        $this->expectException(NotFoundHttpException::class);
+
+        $this->send('GET', '/users/abc');
+    }
+
+    public function test_overflowing_value_for_an_int_parameter_is_a_404(): void
+    {
+        $this->router->get('/users/{id}', fn (int $id) => ['id' => $id]);
+
+        $this->expectException(NotFoundHttpException::class);
+
+        $this->send('GET', '/users/99999999999999999999');
+    }
+
+    public function test_non_numeric_value_for_a_float_parameter_is_a_404(): void
+    {
+        $this->router->get('/price/{amount}', fn (float $amount) => ['amount' => $amount]);
+
+        $this->expectException(NotFoundHttpException::class);
+
+        $this->send('GET', '/price/abc');
+    }
+
+    public function test_string_parameters_are_never_rejected(): void
+    {
+        $this->router->get('/tags/{name}', fn (string $name) => ['name' => $name]);
+
+        $this->assertSame(['name' => 'abc'], $this->send('GET', '/tags/abc')->getData());
+    }
+
     public function test_route_parameters_are_stored_on_the_request(): void
     {
         $this->router->get('/users/{id}', fn (Request $request) => ['id' => $request->route('id')]);

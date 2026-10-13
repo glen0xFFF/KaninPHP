@@ -207,6 +207,7 @@ class Router
             ->then(function (Request $request) use ($route, $parameters): Response {
                 $this->container->instance(Request::class, $request);
                 $action = $this->resolveAction($route->getAction());
+                $this->assertNumericParametersFit($action, $parameters);
 
                 return static::toResponse($this->container->call($action, $parameters));
             });
@@ -307,5 +308,37 @@ class Router
         }
 
         return [$class, $method];
+    }
+
+    /**
+     * A URL value that can never become the action's int/float parameter
+     * (like "abc", or a number too big for an int) means "no such page":
+     * answer 404 instead of letting PHP throw a TypeError (a 500).
+     */
+    private function assertNumericParametersFit(\Closure|array $action, array $parameters): void
+    {
+        $function = $action instanceof \Closure
+            ? new \ReflectionFunction($action)
+            : new \ReflectionMethod($action[0], $action[1]);
+
+        foreach ($function->getParameters() as $parameter) {
+            $type = $parameter->getType();
+            $value = $parameters[$parameter->getName()] ?? null;
+
+            if (! $type instanceof \ReflectionNamedType || ! $type->isBuiltin() || ! is_string($value)) {
+                continue;
+            }
+
+            $fits = match ($type->getName()) {
+                'int' => is_numeric($value) && (float) $value == floor((float) $value)
+                    && (float) $value < (float) PHP_INT_MAX && (float) $value >= (float) PHP_INT_MIN,
+                'float' => is_numeric($value),
+                default => true,
+            };
+
+            if (! $fits) {
+                throw new NotFoundHttpException();
+            }
+        }
     }
 }

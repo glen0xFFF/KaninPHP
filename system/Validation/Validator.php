@@ -229,7 +229,7 @@ class Validator
 
         return match ($rule) {
             'required', 'nullable' => true,
-            'string' => is_string($value),
+            'string' => is_string($value) && mb_check_encoding($value, 'UTF-8'),
             'email' => is_string($value) && filter_var($value, FILTER_VALIDATE_EMAIL) !== false,
             'numeric' => is_int($value) || is_float($value) || (is_string($value) && is_numeric($value)),
             'integer' => (is_int($value) || is_string($value)) && filter_var($value, FILTER_VALIDATE_INT) !== false,
@@ -237,7 +237,7 @@ class Validator
             'max' => $size !== null && $size <= (float) $parameters[0],
             'between' => $size !== null && $size >= (float) $parameters[0] && $size <= (float) $parameters[1],
             'confirmed' => ($this->data[$field . '_confirmation'] ?? null) === $value,
-            'in' => is_scalar($value) && in_array((string) $value, $parameters, true),
+            'in' => is_scalar($value) && mb_check_encoding((string) $value, 'UTF-8') && in_array((string) $value, $parameters, true),
             'same' => array_key_exists($parameters[0], $this->data) && $this->data[$parameters[0]] === $value,
             'alpha_num' => (is_string($value) || is_int($value)) && preg_match('/^[\pL\pM\pN]+$/u', (string) $value) === 1,
             'url' => is_string($value) && filter_var($value, FILTER_VALIDATE_URL) !== false
