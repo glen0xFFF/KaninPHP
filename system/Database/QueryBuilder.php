@@ -14,7 +14,7 @@ namespace Kanin\Database;
 class QueryBuilder
 {
     /** A name like `users`, `email` or `users.email`. */
-    private const IDENTIFIER = '/^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)?$/';
+    private const IDENTIFIER = '/^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)?\z/';
 
     /** The only comparison operators where() accepts. */
     private const OPERATORS = ['=', '!=', '<>', '<', '>', '<=', '>=', 'like', 'not like'];
@@ -215,7 +215,7 @@ class QueryBuilder
     public function paginate(int $perPage = 15, int $page = 1): array
     {
         $perPage = max(1, min(100, $perPage));
-        $page = max(1, $page);
+        $page = max(1, min($page, intdiv(PHP_INT_MAX, $perPage))); // keeps the offset an int
         $total = (clone $this)->count();
 
         $data = (clone $this)->limit($perPage)->offset(($page - 1) * $perPage)->get();

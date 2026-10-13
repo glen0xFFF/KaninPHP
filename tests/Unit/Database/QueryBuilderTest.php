@@ -136,6 +136,8 @@ final class QueryBuilderTest extends TestCase
             'leading digit' => ['1name'],
             'two dots' => ['a.b.c'],
             'empty' => [''],
+            'trailing newline' => ["id
+"],
         ];
     }
 
@@ -154,6 +156,16 @@ final class QueryBuilderTest extends TestCase
         $this->expectExceptionMessage('Invalid identifier [users; --].');
 
         $this->db->table('users; --');
+    }
+
+    public function test_table_name_with_trailing_newline_is_rejected(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage("Invalid identifier [users
+].");
+
+        $this->db->table("users
+");
     }
 
     public function test_select_rejects_bad_columns(): void
@@ -383,6 +395,16 @@ final class QueryBuilderTest extends TestCase
         $this->assertSame([], $page['data']);
         $this->assertSame(9, $page['meta']['current_page']);
         $this->assertSame(2, $page['meta']['last_page']);
+    }
+
+    public function test_paginate_with_huge_page_does_not_overflow(): void
+    {
+        $page = $this->users()->paginate(100, PHP_INT_MAX);
+
+        $this->assertSame([], $page['data']);
+        $this->assertSame(3, $page['meta']['total']);
+        $this->assertSame(1, $page['meta']['last_page']);
+        $this->assertSame(intdiv(PHP_INT_MAX, 100), $page['meta']['current_page']);
     }
 
     public function test_set_model_hydrates_rows_through_new_from_row(): void
