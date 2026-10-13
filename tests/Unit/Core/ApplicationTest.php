@@ -24,6 +24,8 @@ final class ApplicationTest extends TestCase
 
     private string $originalTimezone;
 
+    private string|false $originalDisplayErrors;
+
     protected function setUp(): void
     {
         $this->root = str_replace('\\', '/', sys_get_temp_dir()) . '/kanin-app-' . bin2hex(random_bytes(6));
@@ -34,6 +36,7 @@ final class ApplicationTest extends TestCase
 
         $this->originalErrorHandler = $this->currentErrorHandler();
         $this->originalTimezone = date_default_timezone_get();
+        $this->originalDisplayErrors = ini_get('display_errors');
     }
 
     protected function tearDown(): void
@@ -44,9 +47,11 @@ final class ApplicationTest extends TestCase
         }
 
         date_default_timezone_set($this->originalTimezone);
+        ini_set('display_errors', (string) $this->originalDisplayErrors);
         unset($_ENV['KANIN_APP_TEST_NAME'], $_SERVER['KANIN_APP_TEST_NAME']);
         putenv('KANIN_APP_TEST_NAME');
         Container::setInstance(null);
+        gc_collect_cycles(); // release the SQLite file handle so Windows can delete it
         $this->deleteDirectory($this->root);
     }
 
@@ -101,6 +106,47 @@ final class ApplicationTest extends TestCase
         $this->bootedApp();
 
         $this->assertSame('UTC', date_default_timezone_get());
+    }
+
+    public function test_boot_turns_display_errors_off_when_debug_is_off(): void
+    {
+        ini_set('display_errors', '1');
+        $this->writeConfig('app', ['debug' => false, 'timezone' => 'UTC']);
+
+        $this->bootedApp();
+
+        $this->assertSame('0', ini_get('display_errors'));
+    }
+
+    public function test_boot_turns_display_errors_on_when_debug_is_on(): void
+    {
+        ini_set('display_errors', '0');
+        $this->writeConfig('app', ['debug' => true, 'timezone' => 'UTC']);
+
+        $this->bootedApp();
+
+        $this->assertSame('1', ini_get('display_errors'));
+    }
+
+    public function test_relative_sqlite_path_is_resolved_against_the_project_root(): void
+    {
+        $this->writeConfig('database', ['default' => 'sqlite', 'connections' => ['sqlite' => ['driver' => 'sqlite', 'database' => 'data.sqlite']]]);
+        $app = $this->bootedApp();
+
+        $app->make(Connection::class)->unprepared('CREATE TABLE t (id INTEGER)');
+
+        $this->assertFileExists($this->root . '/data.sqlite');
+    }
+
+    public function test_absolute_and_memory_sqlite_paths_are_left_alone(): void
+    {
+        $absolute = $this->root . '/abs.sqlite';
+        $this->writeConfig('database', ['default' => 'sqlite', 'connections' => ['sqlite' => ['driver' => 'sqlite', 'database' => $absolute]]]);
+        $app = $this->bootedApp();
+        $app->make(Connection::class)->unprepared('CREATE TABLE t (id INTEGER)');
+
+        $this->assertFileExists($absolute);
+        $this->assertFileDoesNotExist($this->root . '/' . ltrim($absolute, '/'));
     }
 
     public function test_boot_registers_the_core_services_as_singletons(): void

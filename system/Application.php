@@ -74,6 +74,10 @@ class Application extends Container
         $config = Config::fromDirectory($this->basePath('config'));
         $this->instance(Config::class, $config);
 
+        // Never print PHP errors into responses unless debugging; they still go to the log.
+        ini_set('display_errors', $config->get('app.debug', false) ? '1' : '0');
+        ini_set('log_errors', '1');
+
         date_default_timezone_set((string) $config->get('app.timezone', 'UTC'));
         Handler::registerErrorHandler();
 
@@ -135,10 +139,31 @@ class Application extends Container
                 throw new \RuntimeException("Database connection [{$name}] is not configured.");
             }
 
-            return new Connection($settings);
+            return new Connection($this->withProjectRelativeSqlitePath($settings));
         });
 
         $this->singleton(Handler::class, fn (): Handler => new Handler($this));
+    }
+
+    /**
+     * A relative SQLite file path means "inside the project", not "inside
+     * whatever folder PHP happens to run from" (that is public/ on a web server).
+     *
+     * @param array<string, mixed> $settings
+     *
+     * @return array<string, mixed>
+     */
+    private function withProjectRelativeSqlitePath(array $settings): array
+    {
+        $database = $settings['database'] ?? null;
+        $isAbsolute = is_string($database)
+            && (in_array($database[0] ?? '', ['/', chr(92)], true) || preg_match('/^[A-Za-z]:/', $database) === 1);
+
+        if (($settings['driver'] ?? null) === 'sqlite' && is_string($database) && $database !== '' && $database !== ':memory:' && ! $isAbsolute) {
+            $settings['database'] = $this->basePath($database);
+        }
+
+        return $settings;
     }
 
     /**
