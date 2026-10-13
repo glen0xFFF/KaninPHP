@@ -53,6 +53,14 @@ final class AuthenticateTokenTest extends TestCase
         $this->assertSame(0, $this->nextCalls, 'The protected route must not run.');
     }
 
+    public function test_a_prefix_or_extension_of_a_valid_token_is_refused(): void
+    {
+        $middleware = $this->middleware(['test-token']);
+
+        $this->assertUnauthenticated($middleware, $this->requestWithAuthorization('Bearer test-tok'));
+        $this->assertUnauthenticated($middleware, $this->requestWithAuthorization('Bearer test-token-longer'));
+    }
+
     public function test_valid_token_reaches_the_route(): void
     {
         $response = $this->middleware(['test-token'])->handle(

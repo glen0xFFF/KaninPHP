@@ -53,17 +53,19 @@ class AuthenticateToken implements Middleware
     /**
      * Compare against every configured token with hash_equals().
      *
-     * hash_equals() takes the same time whether the strings differ early or
-     * late, and we never stop at the first match, so response timing does not
-     * reveal anything about the secret tokens.
+     * Both sides are hashed with sha256 first, so every comparison is between
+     * strings of the same length: neither the token length nor how many
+     * characters matched changes the response time. We also never stop at the
+     * first match.
      */
     private function matchesAnyToken(string $given): bool
     {
         $matched = false;
+        $givenHash = hash('sha256', $given);
 
         foreach ($this->tokens() as $known) {
             // hash_equals() runs first so it is evaluated for every token.
-            $matched = hash_equals($known, $given) || $matched;
+            $matched = hash_equals(hash('sha256', $known), $givenHash) || $matched;
         }
 
         return $matched;

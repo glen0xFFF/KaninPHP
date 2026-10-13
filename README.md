@@ -155,7 +155,7 @@ Settings come from two places:
 | `APP_URL` | `http://localhost:8000` | Base URL used by the `url()` helper. |
 | `APP_TIMEZONE` | `UTC` | Default timezone for dates. |
 | `DB_CONNECTION` | `sqlite` | `sqlite`, `mysql` or `pgsql`. |
-| `DB_DATABASE` | `database/database.sqlite` | SQLite file path, or the database name for MySQL / PostgreSQL. |
+| `DB_DATABASE` | `database/database.sqlite` | SQLite file path (a relative path is relative to the project root, not to `public/`), or the database name for MySQL / PostgreSQL. |
 | `DB_HOST`, `DB_PORT` | `127.0.0.1`, `3306` (`5432` for pgsql) | MySQL / PostgreSQL server. |
 | `DB_USERNAME`, `DB_PASSWORD` | `root` (`postgres` for pgsql), empty | MySQL / PostgreSQL credentials. |
 | `CORS_ALLOWED_ORIGINS` | `*` | Comma-separated list of origins allowed to call the API. |
@@ -453,7 +453,7 @@ field name.
 | `in:a,b,c` | The value is one of the listed values. |
 | `same:other` | The value equals the `other` field. |
 | `alpha_num` | Only letters and digits. |
-| `url` | The value is a valid URL. |
+| `url` | The value is a valid `http://` or `https://` URL. |
 | `unique:table,column` | No row in `table` has this value in `column`. Add `,id` to ignore one row (`unique:users,email,5`) and `,idColumn` if the key is not `id`. |
 | `exists:table,column` | A row in `table` has this value in `column`. |
 
@@ -559,7 +559,7 @@ warning is written in `config/cors.php`). If you turn credentials on, list expli
 ### Token authentication
 
 `auth.token` compares the request's `Authorization: Bearer <token>` header against the
-comma-separated tokens in `API_TOKENS`, using a timing-safe comparison. If the token is
+comma-separated tokens in `API_TOKENS`, using a comparison that takes the same time for any token, whatever its length. If the token is
 missing or wrong (or `API_TOKENS` is empty), the request is refused with `401`,
 `{"message":"Unauthenticated."}` and a `WWW-Authenticate: Bearer` header.
 
@@ -978,7 +978,7 @@ it in production.
   columns are never serialized. Add passwords and secrets to `$hidden`.
 - **Tokens:** use long random tokens (`php -r "echo bin2hex(random_bytes(32));"`), keep
   them in `.env`, and only send them over HTTPS. An empty `API_TOKENS` denies every
-  protected request. Tokens are compared with `hash_equals`.
+  protected request. Tokens are compared in constant time (both sides are hashed with sha256, then `hash_equals`).
 - **CORS:** `*` is convenient in development; list your real origins in production.
   Credentials are off by default.
 - **Validate all input** with `$request->validate()` and use the returned array, not
