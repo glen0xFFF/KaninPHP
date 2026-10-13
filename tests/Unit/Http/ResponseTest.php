@@ -71,6 +71,22 @@ final class ResponseTest extends TestCase
         (new Response())->header('Bad Name:', 'x');
     }
 
+    public function test_header_refuses_name_with_trailing_line_feed(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid header name [X-Evil\n].');
+
+        (new Response())->header("X-Evil\n", 'x');
+    }
+
+    public function test_header_refuses_nul_in_value(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Header [X-Nul] contains a line break.');
+
+        (new Response())->header('X-Nul', "a\0b");
+    }
+
     public function test_status_code_below_100_is_refused(): void
     {
         $this->expectException(\InvalidArgumentException::class);

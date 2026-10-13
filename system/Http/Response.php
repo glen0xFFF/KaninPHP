@@ -93,8 +93,10 @@ class Response
      */
     public function header(string $name, string $value): static
     {
-        if (preg_match('/^[A-Za-z0-9!#$%&\'*+.^_`|~-]+$/', $name) !== 1) {
-            throw new \InvalidArgumentException("Invalid header name [{$name}].");
+        if (preg_match('/^[A-Za-z0-9!#$%&\'*+.^_`|~-]+\z/', $name) !== 1) {
+            $shown = addcslashes($name, "\0..\37\177");
+
+            throw new \InvalidArgumentException("Invalid header name [{$shown}].");
         }
 
         if (preg_match('/[\r\n\0]/', $value) === 1) {
