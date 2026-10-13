@@ -1,0 +1,65 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controllers;
+
+use Kanin\Http\JsonResponse;
+use Kanin\Http\Request;
+
+/**
+ * {{ class }}: a JSON API resource controller.
+ *
+ * Register all five routes in routes/api.php with:
+ *     $router->apiResource('things', {{ class }}::class);
+ */
+class {{ class }}
+{
+    /**
+     * GET /things: list the resources.
+     */
+    public function index(Request $request): array
+    {
+        return ['data' => []];
+    }
+
+    /**
+     * POST /things: validate the input and create a resource.
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            // 'name' => 'required|string|max:100',
+        ]);
+
+        return response($data, 201);
+    }
+
+    /**
+     * GET /things/{id}: show one resource.
+     */
+    public function show(int $id): array
+    {
+        return ['id' => $id];
+    }
+
+    /**
+     * PUT or PATCH /things/{id}: validate the input and update a resource.
+     */
+    public function update(Request $request, int $id): array
+    {
+        $data = $request->validate([
+            // 'name' => 'required|string|max:100',
+        ]);
+
+        return ['id' => $id] + $data;
+    }
+
+    /**
+     * DELETE /things/{id}: delete a resource and answer "204 No Content".
+     */
+    public function destroy(int $id): JsonResponse
+    {
+        return response(null, 204);
+    }
+}

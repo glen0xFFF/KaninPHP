@@ -1,0 +1,34 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Closure;
+use Kanin\Http\Middleware;
+use Kanin\Http\Request;
+use Kanin\Http\Response;
+
+/**
+ * {{ class }} middleware.
+ *
+ * Use it on a route by class name:
+ *     $router->get('/x', $action)->middleware({{ class }}::class);
+ * or give it a short alias in config/app.php under 'middleware_aliases'.
+ */
+class {{ class }} implements Middleware
+{
+    /**
+     * Run code before and/or after the rest of the request.
+     */
+    public function handle(Request $request, Closure $next): Response
+    {
+        // Code here runs BEFORE the controller.
+
+        $response = $next($request);
+
+        // Code here runs AFTER the controller.
+
+        return $response;
+    }
+}
