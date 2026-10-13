@@ -347,6 +347,15 @@ class Request
             }
         }
 
+        // Some Apache setups only expose the header as REDIRECT_HTTP_AUTHORIZATION.
+        if (! isset($headers['authorization'])) {
+            $authorization = $server['REDIRECT_HTTP_AUTHORIZATION'] ?? null;
+
+            if (is_string($authorization) && $authorization !== '') {
+                $headers['authorization'] = $authorization;
+            }
+        }
+
         return $headers;
     }
 

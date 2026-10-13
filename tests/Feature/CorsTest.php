@@ -57,6 +57,42 @@ final class CorsTest extends TestCase
         $this->assertSame('*', $response->getHeader('Access-Control-Allow-Origin'));
     }
 
+    public function test_malformed_json_body_still_gets_cors_headers(): void
+    {
+        $request = Request::create('/api/users', 'POST', [], [
+            'Origin' => 'https://frontend.example',
+            'Content-Type' => 'application/json',
+        ], '{bad');
+
+        $response = $this->app->handle($request);
+
+        $this->assertSame(400, $response->getStatusCode());
+        $this->assertSame('*', $response->getHeader('Access-Control-Allow-Origin'));
+    }
+
+    public function test_unknown_method_with_origin_gets_405_with_cors_headers(): void
+    {
+        $request = Request::create('/api/users', 'BREW', [], ['Origin' => 'https://frontend.example']);
+
+        $response = $this->app->handle($request);
+
+        $this->assertSame(405, $response->getStatusCode());
+        $this->assertSame('*', $response->getHeader('Access-Control-Allow-Origin'));
+    }
+
+    public function test_preflight_header_with_unknown_method_gets_405_with_cors_headers(): void
+    {
+        $request = Request::create('/api/users', 'BREW', [], [
+            'Origin' => 'https://frontend.example',
+            'Access-Control-Request-Method' => 'POST',
+        ]);
+
+        $response = $this->app->handle($request);
+
+        $this->assertSame(405, $response->getStatusCode());
+        $this->assertSame('*', $response->getHeader('Access-Control-Allow-Origin'));
+    }
+
     public function test_request_without_origin_gets_no_cors_headers(): void
     {
         $response = $this->getJson('/api');

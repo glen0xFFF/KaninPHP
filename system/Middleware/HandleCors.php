@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kanin\Middleware;
 
 use Closure;
+use Kanin\Http\HttpException;
 use Kanin\Http\Method;
 use Kanin\Http\Middleware;
 use Kanin\Http\Request;
@@ -64,8 +65,16 @@ class HandleCors implements Middleware
      */
     private function isPreflight(Request $request): bool
     {
-        return $request->method() === Method::OPTIONS
-            && $request->header('Access-Control-Request-Method') !== null;
+        if ($request->header('Access-Control-Request-Method') === null) {
+            return false;
+        }
+
+        try {
+            return $request->method() === Method::OPTIONS;
+        } catch (HttpException) {
+            // An unknown HTTP verb is not a preflight; the router will answer 405.
+            return false;
+        }
     }
 
     /**

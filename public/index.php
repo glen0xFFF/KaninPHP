@@ -15,7 +15,9 @@ use Kanin\Application;
 
 if (PHP_SAPI === 'cli-server') {
     $publicDir = (string) realpath(__DIR__);
-    $requested = realpath($publicDir . rawurldecode((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH)));
+    $decoded = rawurldecode((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH));
+    // realpath() throws on NUL bytes: such a path is never a file, so let the app answer 404.
+    $requested = str_contains($decoded, "\0") ? false : realpath($publicDir . $decoded);
 
     // Only plain files that really live inside public/: never "../" escapes,
     // never hidden dotfiles such as .htaccess, never this script itself.

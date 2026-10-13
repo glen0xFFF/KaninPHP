@@ -114,6 +114,29 @@ final class RequestTest extends TestCase
         $this->assertSame(['debug' => '1', 'name' => 'Ada'], $request->all());
     }
 
+    public function test_bearer_token_falls_back_to_redirect_http_authorization(): void
+    {
+        $_SERVER = ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/', 'REDIRECT_HTTP_AUTHORIZATION' => 'Bearer viaredirect'];
+        $_GET = [];
+        $_POST = [];
+
+        $this->assertSame('viaredirect', Request::capture()->bearerToken());
+    }
+
+    public function test_http_authorization_wins_over_redirect_http_authorization(): void
+    {
+        $_SERVER = [
+            'REQUEST_METHOD' => 'GET',
+            'REQUEST_URI' => '/',
+            'HTTP_AUTHORIZATION' => 'Bearer direct',
+            'REDIRECT_HTTP_AUTHORIZATION' => 'Bearer viaredirect',
+        ];
+        $_GET = [];
+        $_POST = [];
+
+        $this->assertSame('direct', Request::capture()->bearerToken());
+    }
+
     public function test_capture_defaults_when_server_is_empty(): void
     {
         $_SERVER = [];
