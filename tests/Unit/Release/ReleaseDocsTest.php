@@ -71,7 +71,7 @@ final class ReleaseDocsTest extends TestCase
         $path = dirname(__DIR__, 3) . '/' . $file;
         $this->assertFileExists($path, "{$file} is missing from the project root.");
 
-        return (string) file_get_contents($path);
+        return str_replace("\r\n", "\n", (string) file_get_contents($path));
     }
 
     /**

@@ -1,0 +1,5 @@
+* text=auto eol=lf
+*.php text eol=lf
+*.md text eol=lf
+kanin text eol=lf
+*.stub text eol=lf

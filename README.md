@@ -4,9 +4,10 @@ KaninPHP is a small, readable, API-first PHP framework for beginners. It gives y
 routing, controllers, middleware, JSON responses, validation, a safe query builder and
 simple models, and nothing you do not need to build a JSON REST API.
 
-The whole framework lives in the `system/` folder and is meant to be read. Every core
-class is short, documented and has no runtime dependencies besides PHP itself, so you
-can open any file and understand what it does in one sitting.
+The whole framework lives in the `system/` folder and is meant to be read. It has no
+runtime dependencies besides PHP itself, and the classes are documented. Most core
+classes are under about 300 lines; a few are around 370 and are planned to be split in
+v1.0.1, so you can still open any file and follow it in one sitting.
 
 - Laravel-flavoured ergonomics (`Route::get()`, `$request->validate()`, `User::create()`),
   CodeIgniter-level simplicity.
@@ -172,7 +173,7 @@ Read any setting with the `config()` helper and dot notation (`file.key.subkey`)
 ```php
 $name = config('app.name');
 $driver = config('database.connections.sqlite.driver');
-$perPage = config('app.per_page', 15); // second argument = default value
+$perPage = config('app.missing_key', 15); // a missing key returns the default (15)
 ```
 
 Prefer `config()` in your code and keep `env()` inside the files in `config/`.
@@ -710,8 +711,9 @@ Two things to watch out for:
   test for missing values use `whereNull('col')` or `whereNotNull('col')`.
 - `orWhere()` conditions are **not** wrapped in parentheses. The query
   `where(a)->orWhere(b)` means `a OR b`, so `where('id', 1)->orWhere('name', 'Ada')->delete()`
-  removes row 1 **and** every other row named Ada, wherever it is. Be careful when you combine `orWhere()`
-  with `update()` or `delete()`, and prefer a single `where()` for writes.
+  removes row 1 **and** every other row named Ada, wherever it is. Be careful when you
+  combine `orWhere()` with `update()` or `delete()`, and prefer a single `where()` for
+  writes.
 
 Allowed operators: `=`, `!=`, `<>`, `<`, `>`, `<=`, `>=`, `like` and `not like`. Sort
 directions: `asc` and `desc`. Anything else throws an `InvalidArgumentException`.
@@ -768,7 +770,7 @@ $post->title = 'Hello, world';                                       // set an a
 $post->save();                                                       // UPDATE
 
 $same = Post::find($post->getKey());          // the model, or null
-$sure = Post::findOrFail(1);                  // the model, or a 404 response
+$sure = Post::findOrFail(1);                  // the model, or throws NotFoundHttpException (a 404 JSON response)
 $all = Post::all();                           // array of models
 $recent = Post::where('id', '>', 10)->orderBy('id', 'desc')->get();
 $paged = Post::query()->paginate(10, 1);      // models inside "data"
@@ -993,7 +995,8 @@ Contributions are welcome:
 3. Run `composer test`; the whole suite must pass.
 4. Follow the code style: PSR-12, 4-space indentation, `declare(strict_types=1);` in every
    PHP file, short methods with a docblock written for beginners.
-5. Keep the framework small: no runtime dependencies, and no core class over about 300 lines.
+5. Keep the framework small: no runtime dependencies, and keep core classes short (most are
+   under about 300 lines; the few larger ones are slated for splitting in v1.0.1).
 6. Use conventional commit messages (`feat(routing): ...`, `fix(database): ...`) and open
    a pull request describing what changed and why.
 
