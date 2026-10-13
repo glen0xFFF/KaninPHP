@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Kanin\Http;
 
+use Kanin\Validation\Validator;
+
 /**
  * An incoming HTTP request: method, path, query string, body and headers.
  *
@@ -346,5 +348,23 @@ class Request
         }
 
         return $headers;
+    }
+
+    /**
+     * Validate this request's input (query + body) against the given rules.
+     *
+     * Returns only the validated fields. When validation fails a
+     * ValidationException is thrown, which KaninPHP turns into a 422 JSON
+     * response for you - so your controller code only runs with good data.
+     *
+     *     $data = $request->validate(['email' => 'required|email']);
+     *
+     * @param array<string, string|list<string>> $rules
+     * @param array<string, string> $messages
+     * @return array<string, mixed>
+     */
+    public function validate(array $rules, array $messages = []): array
+    {
+        return Validator::make($this->all(), $rules, $messages)->validate();
     }
 }
